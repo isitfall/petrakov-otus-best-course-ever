@@ -1,0 +1,37 @@
+{
+  "name": "petrakov-otus-best-course-ever",
+  "version": "1.0.0",
+  "description": "Приложение будет построено на Express, MongoDB, TS.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node dist/index.js",
+    "build": "tsc",
+    "dev": "nodemon",
+    "test:coverage": "jest --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isitfall/petrakov-otus-best-course-ever.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/isitfall/petrakov-otus-best-course-ever/issues"
+  },
+  "homepage": "https://github.com/isitfall/petrakov-otus-best-course-ever#readme",
+  "devDependencies": {
+    "@types/express": "5.0.1",
+    "@types/jest": "29.5.14",
+    "@types/supertest": "6.0.3",
+    "jest": "29.7.0",
+    "nodemon": "3.1.9",
+    "supertest": "7.1.0",
+    "ts-jest": "29.3.2",
+    "ts-node": "10.9.2",
+    "typescript": "5.8.3"
+  },
+  "dependencies": {
+    "express": "5.1.0"
+  }
+}
