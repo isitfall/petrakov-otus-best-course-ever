@@ -30,21 +30,6 @@ interface Course {
     createdAt: Date; // Дата создания курса
 }
 ```
-### Курс
-```typescript
-interface Course {
-    id: string;
-    title: string; // Название курса
-    description: string; // Описание курса
-    files: string[] // наименования файлов
-    tags: string[]; // Массив ID тегов
-    difficulty: 'beginner' | 'intermediate' | 'advanced'; // Уровень сложности
-    authorId: string; // ID автора курса
-    lessonsId: string[]; // Массив ID занятий
-    usersId: string[]; // Массив ID разрешенных пользователей
-    createdAt: Date; // Дата создания курса
-}
-```
 ### Занятие
 ```typescript
 interface Lesson {
@@ -73,6 +58,17 @@ interface Rating {
 interface Tags {
     id: id;
     title: string;
+}
+```
+
+### Тег
+```typescript
+interface Comment {
+    id: id;
+    text: string;
+    userId: string; // ID автора
+    lessonId: string; // ID занятия
+    createdAt: Date;
 }
 ```
 
