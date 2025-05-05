@@ -2,6 +2,7 @@ import express from "express";
 import { DatabaseClient } from "./db/client";
 import { userRouter } from "./routes/user.routes";
 import { courseRouter } from "./routes/courses.routes";
+import { lessonRouter } from "./routes/lessons.routes";
 
 
 export const main = async ()=> {
@@ -13,6 +14,7 @@ export const main = async ()=> {
         app.use(express.json());
         app.use(userRouter);
         app.use(courseRouter);
+        app.use(lessonRouter);
 
 
         app.listen(3000, () => console.log("Server is running on port 3000"));
