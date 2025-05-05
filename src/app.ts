@@ -13,11 +13,11 @@ const swaggerDoc = JSON.parse(fs.readFileSync(__dirname + "/swagger/swagger-outp
 
 
 export const main = async ()=> {
+    const app = express();
     try {
         const dbClient =  DatabaseClient.getInstance();
         await dbClient.connect();
 
-        const app = express();
         app.use(express.json());
         app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 
@@ -31,5 +31,6 @@ export const main = async ()=> {
     } catch (e) {
         console.log(e);
     }
+    return app;
 }
 
