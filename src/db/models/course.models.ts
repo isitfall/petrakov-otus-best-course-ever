@@ -9,7 +9,6 @@ export interface ICourse extends Document {
     difficulty: Difficulty;
     authorId: Schema.Types.ObjectId;
     files?: string[];
-    lessonsId?: Schema.Types.ObjectId[];
     usersId: Schema.Types.ObjectId[];
     createdAt?: Date;
 }
@@ -21,7 +20,6 @@ const CourseSchema: Schema = new Schema({
     difficulty: { type: String, enum: [Difficulty.Beginner, Difficulty.Intermediate, Difficulty.Advanced], required: true },
     authorId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     files: [{ type: String, default: () => [] }],
-    lessonsId: [{ type: Schema.Types.ObjectId, ref: 'Lesson', default: () => [] }],
     usersId: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     createdAt: { type: Date, default: () => Date.now(), immutable: true },
 });
