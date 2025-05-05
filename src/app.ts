@@ -4,6 +4,7 @@ import { userRouter } from "./routes/user.routes";
 import { courseRouter } from "./routes/courses.routes";
 import { lessonRouter } from "./routes/lessons.routes";
 import { tagsRouter } from "./routes/tags.routes";
+import { ratingRouter } from "./routes/rating.routes";
 
 
 export const main = async ()=> {
@@ -18,6 +19,7 @@ export const main = async ()=> {
         app.use(courseRouter);
         app.use(lessonRouter);
         app.use(tagsRouter);
+        app.use(ratingRouter);
 
 
         app.listen(3000, () => console.log("Server is running on port 3000"));
