@@ -13,8 +13,8 @@ export interface ILesson extends Document {
 }
 
 const LessonSchema: Schema = new Schema({
-    title: { type: String, required: true },
-    description: { type: String, required: true },
+    title: { type: String, trim: true, required: true },
+    description: { type: String, trim: true, required: true },
     videoUrl: { type: String },
     files: [{ type: String }],
     links: [{ type: String }],

@@ -6,7 +6,7 @@ export interface ITag extends Document {
 }
 
 const TagSchema: Schema = new Schema({
-    title: { type: String, required: true, unique: true },
+    title: { type: String, trim: true, required: true, unique: true },
     createdAt: { type: Date, default: () => Date.now(), immutable: true },
 });
 
