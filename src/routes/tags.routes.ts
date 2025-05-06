@@ -8,7 +8,7 @@ tagsRouter.post("/api/tags", async (req, res) => {
     if (!req.body) throw new Error("Tag Data Not Found");
     try {
         const tag  = await Tag.create(req.body);
-        res.status(201).json({tag});
+        res.status(201).json(tag);
     } catch (error) {
         // @ts-expect-error wrong type
         res.status(400).json({message: error?.errorResponse?.errmsg});

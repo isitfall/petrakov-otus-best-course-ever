@@ -1,5 +1,6 @@
 import { main } from "./app";
+import config from "./db/config";
 
-main();
+main(config.uri);
 
 

@@ -12,14 +12,14 @@ export class DatabaseClient {
         return DatabaseClient.instance;
     }
 
-    public async connect(): Promise<void> {
+    public async connect(uri: string): Promise<void> {
         if (this.db) {
             console.log('Already connected to the database');
             return;
         }
 
         try {
-            this.db = await mongoose.connect(config.uri);
+            this.db = await mongoose.connect(uri);
             console.log('Connected to the database');
         } catch (error) {
             console.error('Error connecting to the database:', error);

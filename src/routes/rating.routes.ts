@@ -8,7 +8,7 @@ ratingRouter.post("/api/ratings", async (req, res) => {
     if (!req.body) throw new Error("Rating Data Not Found");
     try {
         const rating  = await Rating.create(req.body);
-        res.status(201).json({rating});
+        res.status(201).json(rating);
     } catch (error) {
         // @ts-expect-error wrong type
         res.status(400).json({message: error?.errorResponse?.errmsg});

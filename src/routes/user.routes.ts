@@ -20,7 +20,7 @@ userRouter.post("/api/users", async (req, res) => {
     if (!req.body) throw new Error("User Data Not Found");
     try {
         const user = await User.create(req.body);
-        res.status(201).json({user});
+        res.status(201).json(user);
     } catch (error) {
         // @ts-expect-error wrong type
         res.status(400).json({message: error?.errorResponse?.errmsg});

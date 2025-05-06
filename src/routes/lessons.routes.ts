@@ -8,7 +8,7 @@ lessonRouter.post("/api/lessons", async (req, res) => {
     if (!req.body) throw new Error("Lesson Data Not Found");
     try {
         const lesson  = await Lesson.create(req.body);
-        res.status(201).json({lesson});
+        res.status(201).json(lesson);
     } catch (error) {
         // @ts-expect-error wrong type
         res.status(400).json({message: error?.errorResponse?.errmsg});

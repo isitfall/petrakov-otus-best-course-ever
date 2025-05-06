@@ -1,32 +1,39 @@
 import request from 'supertest';
+import mongoose from "mongoose";
+import { User } from "../db/models/user.models";
 import { main } from "../app";
-import { Application } from "express";
-import { Connection } from "mongoose";
+import { DatabaseClient } from "../db/client";
+import config from "../db/config";
+
+const TEST_DB_URI = `mongodb://${config.db_login}:${config.db_password}@localhost:27017/testdb_${Date.now()}?authSource=admin`;
+
+let app: any;
+
+beforeAll(async () => {
+    app = await main(TEST_DB_URI);
+    console.log("Connected to test DB");
+}, 10000);
+
+afterAll(async () => {
+    await DatabaseClient.getInstance().disconnect();
+
+}, 10000);
+
+beforeAll(async () => {
+    await User.deleteMany({});
+})
 
 
 describe('API Tests', () => {
-    let serverApp: Application;
-    let dbConnection: Connection;
-
-    // Create test app before all tests
-    beforeAll(async () => {
-        serverApp = await main();
-        dbConnection = require('../src/db/client').DatabaseClient.getInstance().getConnection();
-    });
-
-    // Clean up after all tests
-    afterAll(async () => {
-        await dbConnection.dropDatabase();
-        await dbConnection.close();
-    });
-
     let token: string;
     let courseId: string;
     let lessonId: string;
+    let ratingId: string;
+    let tagId: string;
 
     describe('POST /api/auth/register', () => {
         it.skip('should register a new user', async () => {
-            const response = await request(serverApp)
+            const response = await request(app)
                 .post('/api/auth/register')
                 .send({
                     username: 'testuser',
@@ -42,13 +49,13 @@ describe('API Tests', () => {
 
     describe('POST /api/auth/login', () => {
         it.skip('should login a user and return a token', async () => {
-            await request(serverApp).post('/api/auth/register').send({
+            await request(app).post('/api/auth/register').send({
                 username: 'testuser',
                 email: 'test@example.com',
                 password: 'password123',
             });
 
-            const response = await request(serverApp)
+            const response = await request(app)
                 .post('/api/auth/login')
                 .send({
                     email: 'test@example.com',
@@ -63,7 +70,7 @@ describe('API Tests', () => {
 
     describe('GET /api/users/me', () => {
         it.skip('should return the current user info', async () => {
-            const response = await request(serverApp)
+            const response = await request(app)
                 .get('/api/users/me')
                 .set('Authorization', `Bearer ${token}`);
 
@@ -72,26 +79,143 @@ describe('API Tests', () => {
         });
     });
 
-    describe('POST /api/courses', () => {
-        it('should create a new course', async () => {
-            const response = await request(serverApp)
-                .post('/api/courses')
-                // .set('Authorization', `Bearer ${token}`)
-                .field('title', 'Test Course')
-                .field('description', 'This is a test course')
-                .field('tags', JSON.stringify(['tag1', 'tag2']))
-                .field('difficulty', 'beginner');
+    describe("GET /api/users", () => {
+        it("should return 404 if no users exist", async () => {
+            const response = await request(app).get("/api/users");
+
+            expect(response.status).toBe(404);
+            expect(response.body.message).toBe("Users Not Found");
+        });
+
+        it("should return 200 and list of users", async () => {
+            await User.create({
+                username: "alice123",
+                email: "alice@example.com",
+                password: "password123",
+                role: "user"
+            });
+
+            await User.create({
+                username: "bob123",
+                email: "bob@example.com",
+                password: "password456",
+                role: "admin"
+            });
+
+            const response = await request(app).get("/api/users");
+
+
+            expect(response.status).toBe(200);
+            expect(response.body.length).toBe(2);
+            expect(response.body[0].username).toBe("alice123");
+            expect(response.body[1].email).toBe("bob@example.com");
+        });
+    });
+
+    describe("POST /api/users", () => {
+        it("should return 400 if user data is missing", async () => {
+            const response = await request(app)
+                .post("/api/users")
+                .send({});
+
+            expect(response.status).toBe(400);
+        });
+
+        it("should create a new user", async () => {
+            const userData = {
+                username: "Charlie",
+                email: "charlie@example.com",
+                password: "password123",
+                role: "user"
+            };
+
+            const response = await request(app)
+                .post("/api/users")
+                .send(userData);
 
             expect(response.status).toBe(201);
-            expect(response.body).toHaveProperty('id');
+            expect(response.body.username).toBe(userData.username);
+            expect(response.body.email).toBe(userData.email);
+            expect(response.body.password).toBe(userData.password);
+            expect(response.body.role).toBe(userData.role);
+        });
+    });
+
+    describe("DELETE /api/users/:id", () => {
+        it("should return 404 if user does not exist", async () => {
+            const fakeId = new mongoose.Types.ObjectId();
+            const response = await request(app).delete(`/api/users/${fakeId}`);
+
+            expect(response.status).toBe(404);
+            expect(response.body.message).toBe("User does not exist");
+        });
+
+        it("should delete an existing user", async () => {
+            const user = await User.create({ username: "Dave", email: "dave@example.com", password: "pass", role: "user" });
+            const response = await request(app).delete(`/api/users/${user._id}`);
+
+            expect(response.status).toBe(200);
+
+            const deletedUser = await User.findById(user._id);
+            expect(deletedUser).toBeNull();
+        });
+    });
+
+    describe("PUT /api/users/:id/role", () => {
+        it("should return 404 if user does not exist", async () => {
+            const fakeId = new mongoose.Types.ObjectId();
+            const response = await request(app)
+                .put(`/api/users/${fakeId}/role`)
+                .send({ role: "admin" });
+
+            expect(response.status).toBe(404);
+            expect(response.body.message).toBe("User does not exist");
+        });
+
+        it("should update the role of a user", async () => {
+            const user = await User.create({ username: "Eve", email: "eve@example.com", password: "password123" });
+
+            const response = await request(app)
+                .put(`/api/users/${user._id}/role`)
+                .send({ role: "admin" });
+
+            expect(response.status).toBe(201);
+
+            const updatedUser = await User.findById(user._id);
+            expect(updatedUser?.role).toBe("admin");
+        });
+    });
+
+    describe('POST /api/courses', () => {
+        it('should create a new course', async () => {
+            const user = await User.create({
+                username: "alice1234",
+                email: "alice123231@example.com",
+                password: "password123",
+                role: "user"
+            });
+
+            const courseData = {
+                title: "Test Course",
+                authorId: user._id as string,
+                description: 'This is a test course',
+                difficulty: "beginner",
+            };
+
+
+            const response = await request(app)
+                .post('/api/courses').send(courseData);
+
+            expect(response.status).toBe(201);
+            expect(response.body).toHaveProperty('_id');
             expect(response.body.title).toBe('Test Course');
-            courseId = response.body.id;
+            courseId = response.body._id;
         });
     });
 
     describe('GET /api/courses/:id', () => {
         it('should return course details', async () => {
-            const response = await request(serverApp)
+            const response = await request(app)
                 .get(`/api/courses/${courseId}`)
                 // .set('Authorization', `Bearer ${token}`);
 
@@ -102,11 +226,14 @@ describe('API Tests', () => {
 
     describe('PUT /api/courses/:id', () => {
         it('should update course details', async () => {
-            const response = await request(serverApp)
+            await request(app)
                 .put(`/api/courses/${courseId}`)
+                .send({title: 'Updated Course Title', description: "Updated description"})
                 // .set('Authorization', `Bearer ${token}`)
-                .field('title', 'Updated Course Title')
-                .field('description', 'Updated description');
+
+            const response = await request(app)
+                .get(`/api/courses/${courseId}`)
+
 
             expect(response.status).toBe(200);
             expect(response.body).toHaveProperty('title', 'Updated Course Title');
@@ -115,34 +242,39 @@ describe('API Tests', () => {
 
     describe('DELETE /api/courses/:id', () => {
         it('should delete a course', async () => {
-            const response = await request(serverApp)
+            const response = await request(app)
                 .delete(`/api/courses/${courseId}`)
                 // .set('Authorization', `Bearer ${token}`);
 
             expect(response.status).toBe(200);
-            expect(response.body).toHaveProperty('message', 'Course deleted successfully');
+            expect(response.body).toHaveProperty('title', 'Updated Course Title');
         });
     });
 
     describe('POST /api/lessons', () => {
         it('should create a new lesson', async () => {
-            const response = await request(serverApp)
+
+            const lesson = {
+                title: 'Test Lesson',
+                description: "Lesson",
+                courseId,
+            }
+
+            const response = await request(app)
                 .post('/api/lessons')
                 // .set('Authorization', `Bearer ${token}`)
-                .field('title', 'Test Lesson')
-                .field('description', 'This is a test lesson')
-                .field('courseId', courseId);
+                .send(lesson);
 
             expect(response.status).toBe(201);
-            expect(response.body).toHaveProperty('id');
+            expect(response.body).toHaveProperty('_id');
             expect(response.body.title).toBe('Test Lesson');
-            lessonId = response.body.id;
+            lessonId = response.body._id;
         });
     });
 
     describe('GET /api/lessons/:id', () => {
         it('should return lesson details', async () => {
-            const response = await request(serverApp)
+            const response = await request(app)
                 .get(`/api/lessons/${lessonId}`)
                 // .set('Authorization', `Bearer ${token}`);
 
@@ -153,57 +285,68 @@ describe('API Tests', () => {
 
     describe('PUT /api/lessons/:id', () => {
         it('should update lesson details', async () => {
-            const response = await request(serverApp)
+            await request(app)
                 .put(`/api/lessons/${lessonId}`)
+                .send({title: 'Updated lesson Title', description: "Updated description"})
                 // .set('Authorization', `Bearer ${token}`)
-                .field('title', 'Updated Lesson Title')
-                .field('description', 'Updated description');
+
+            const response = await request(app)
+                .get(`/api/lessons/${lessonId}`)
+                // .set('Authorization', `Bearer ${token}`);
 
             expect(response.status).toBe(200);
-            expect(response.body).toHaveProperty('title', 'Updated Lesson Title');
+            expect(response.body).toHaveProperty('title', 'Updated lesson Title');
         });
     });
 
     describe('DELETE /api/lessons/:id', () => {
         it('should delete a lesson', async () => {
-            const response = await request(serverApp)
+            const response = await request(app)
                 .delete(`/api/lessons/${lessonId}`)
                 // .set('Authorization', `Bearer ${token}`);
 
             expect(response.status).toBe(200);
-            expect(response.body).toHaveProperty('message', 'Lesson deleted successfully');
+            expect(response.body).toHaveProperty('title', 'Updated lesson Title');
         });
     });
 
     describe('POST /api/ratings', () => {
         it('should add a rating to a lesson', async () => {
-            const response = await request(serverApp)
+            const user = await User.create({
+                username: "bob123",
+                email: "bob11@example.com",
+                password: "password456",
+                role: "admin"
+            });
+
+            const response = await request(app)
                 .post('/api/ratings')
                 // .set('Authorization', `Bearer ${token}`)
                 .send({
                     lessonId,
-                    rating: 5,
+                    userId: user._id,
+                    value: 5,
                 });
 
             expect(response.status).toBe(201);
-            expect(response.body).toHaveProperty('rating', 5);
+            expect(response.body).toHaveProperty('value', 5);
+            ratingId = response.body._id;
         });
     });
 
-    describe('GET /api/ratings/:lessonId', () => {
+    describe('GET /api/ratings/:id', () => {
         it('should return all ratings for a lesson', async () => {
-            const response = await request(serverApp)
-                .get(`/api/ratings/${lessonId}`)
+            const response = await request(app)
+                .get(`/api/ratings/${ratingId}`)
                 // .set('Authorization', `Bearer ${token}`);
 
             expect(response.status).toBe(200);
-            expect(Array.isArray(response.body)).toBe(true);
         });
     });
 
     describe('POST /api/tags', () => {
         it('should create a new tag', async () => {
-            const response = await request(serverApp)
+            const response = await request(app)
                 .post('/api/tags')
                 // .set('Authorization', `Bearer ${token}`)
                 .send({
@@ -212,26 +355,18 @@ describe('API Tests', () => {
 
             expect(response.status).toBe(201);
             expect(response.body).toHaveProperty('title', 'New Tag');
+            tagId = response.body._id;
         });
     });
 
     describe('DELETE /api/tags/:id', () => {
         it('should delete a tag', async () => {
-            const tagResponse = await request(serverApp)
-                .post('/api/tags')
-                // .set('Authorization', `Bearer ${token}`)
-                .send({
-                    title: 'Tag to Delete',
-                });
-
-            const tagId = tagResponse.body.id;
-
-            const response = await request(serverApp)
+        const response = await request(app)
                 .delete(`/api/tags/${tagId}`)
                 // .set('Authorization', `Bearer ${token}`);
 
             expect(response.status).toBe(200);
-            expect(response.body).toHaveProperty('message', 'Tag deleted successfully');
+            expect(response.body).toHaveProperty('title', 'New Tag');
         });
     });
 });

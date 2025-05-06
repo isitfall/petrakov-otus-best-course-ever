@@ -12,11 +12,11 @@ import * as fs from 'fs';
 const swaggerDoc = JSON.parse(fs.readFileSync(__dirname + "/swagger/swagger-output.json"));
 
 
-export const main = async ()=> {
+export const main = async (dbUri: string)=> {
     const app = express();
     try {
         const dbClient =  DatabaseClient.getInstance();
-        await dbClient.connect();
+        await dbClient.connect(dbUri);
 
         app.use(express.json());
         app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc));

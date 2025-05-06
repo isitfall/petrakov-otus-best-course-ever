@@ -7,7 +7,7 @@ courseRouter.post("/api/courses", async (req, res) => {
     if (!req.body) throw new Error("Course Data Not Found");
     try {
         const course = await Course.create(req.body);
-        res.status(201).json({course});
+        res.status(201).json(course);
     } catch (error) {
         // @ts-expect-error wrong type
         res.status(400).json({message: error?.errorResponse?.errmsg});
