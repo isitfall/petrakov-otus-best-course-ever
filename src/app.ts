@@ -1,61 +1,36 @@
 import express from "express";
-import { APP_PORT } from "./consts/app";
 import { DatabaseClient } from "./db/client";
-import { User } from "./db/models/user.models";
-import { Difficulty, Roles } from "./types/db/common.types";
-import { Course } from "./db/models/course.models";
-import { Lesson } from "./db/models/lesson.models";
-import { Tag } from "./db/models/tags.models";
+import { userRouter } from "./routes/user.routes";
+import { courseRouter } from "./routes/courses.routes";
+import { lessonRouter } from "./routes/lessons.routes";
+import { tagsRouter } from "./routes/tags.routes";
+import { ratingRouter } from "./routes/rating.routes";
+import swaggerUi from 'swagger-ui-express';
+import * as fs from 'fs';
 
-export const app = express();
+// @ts-expect-error
+const swaggerDoc = JSON.parse(fs.readFileSync(__dirname + "/swagger/swagger-output.json"));
 
-const dbClient = DatabaseClient.getInstance();
 
-app.get('/', (req, res) => {
-    res.send('Hello World!')
-})
-
-app.listen(APP_PORT, () => {
-    console.log(`Example app listening on port ${APP_PORT}`)
-})
-
-const createSomeDbItems = async () => {
+export const main = async (dbUri: string)=> {
+    const app = express();
     try {
-        await dbClient.connect();
+        const dbClient =  DatabaseClient.getInstance();
+        await dbClient.connect(dbUri);
 
-        const user = await User.create({
-            username: 'Otus',
-            password: '123456',
-            email: 'otus@otus.com',
-            role: Roles.Admin,
-            createdAt: new Date(),
-        })
+        app.use(express.json());
+        app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 
-        const beTag = await Tag.create({
-            title: "backend",
-        })
+        app.use(userRouter);
+        app.use(courseRouter);
+        app.use(lessonRouter);
+        app.use(tagsRouter);
+        app.use(ratingRouter);
 
-        const programmingTag = await Tag.create({
-            title: "programming",
-        })
-
-        const course = await Course.create({
-            title: 'Otus nodejs',
-            description: 'Course description',
-            difficulty: Difficulty.Beginner,
-            authorId: user.id,
-            tags: [programmingTag.id, beTag.id],
-        })
-
-        await Lesson.create({
-            title: "FirstLesson",
-            description: "First Lesson",
-            courseId: course.id,
-        })
-    } catch (error) {
-        console.log(error);
+        app.listen(3000, () => console.log("Server is running on port 3000"));
+    } catch (e) {
+        console.log(e);
     }
+    return app;
 }
-
-createSomeDbItems();
 

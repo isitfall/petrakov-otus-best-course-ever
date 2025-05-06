@@ -8,7 +8,7 @@ export interface IComment extends Document {
 }
 
 const CommentSchema: Schema = new Schema({
-    text: { type: String, required: true },
+    text: { type: String, trim: true, required: true },
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     lessonId: { type: Schema.Types.ObjectId, ref: 'Lesson', required: true },
     createdAt: { type: Date, default: () => Date.now() },
