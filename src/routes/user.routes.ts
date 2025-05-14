@@ -1,9 +1,10 @@
 import {Router} from "express";
 import { User } from "../db/models/user.models";
+import { authenticateJWT } from "../middlewares/auth.moddleware";
 
 export const userRouter = Router();
 
-userRouter.get("/api/users", async (req, res) => {
+userRouter.get("/api/users",  authenticateJWT, async (req, res) => {
     try {
         const users = await User.find();
         if (users?.length) {
@@ -16,7 +17,7 @@ userRouter.get("/api/users", async (req, res) => {
     }
 });
 
-userRouter.post("/api/users", async (req, res) => {
+userRouter.post("/api/users",  authenticateJWT, async (req, res) => {
     if (!req.body) throw new Error("User Data Not Found");
     try {
         const user = await User.create(req.body);
@@ -27,7 +28,7 @@ userRouter.post("/api/users", async (req, res) => {
     }
 })
 
-userRouter.delete("/api/users/:id", async (req, res) => {
+userRouter.delete("/api/users/:id",  authenticateJWT, async (req, res) => {
     const _id = req.params.id;
     if (!_id) throw new Error("Parameter 'id' is required");
     try {
@@ -44,7 +45,7 @@ userRouter.delete("/api/users/:id", async (req, res) => {
     }
 })
 
-userRouter.put("/api/users/:id/role", async (req, res) => {
+userRouter.put("/api/users/:id/role",  authenticateJWT, async (req, res) => {
     if (!req.body?.role) throw new Error("Parameter 'role' is required");
     if (!req.params?.id) throw new Error("Parameter 'id' is required");
     try {

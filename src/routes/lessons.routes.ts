@@ -1,10 +1,11 @@
 import {Router} from "express";
 import { Lesson } from "../db/models/lesson.models";
+import { authenticateJWT } from "../middlewares/auth.moddleware";
 
 
 export const lessonRouter = Router();
 
-lessonRouter.post("/api/lessons", async (req, res) => {
+lessonRouter.post("/api/lessons",  authenticateJWT, async (req, res) => {
     if (!req.body) throw new Error("Lesson Data Not Found");
     try {
         const lesson  = await Lesson.create(req.body);
@@ -15,7 +16,7 @@ lessonRouter.post("/api/lessons", async (req, res) => {
     }
 })
 
-lessonRouter.get("/api/lessons", async (req, res) => {
+lessonRouter.get("/api/lessons",  authenticateJWT, async (req, res) => {
     try {
         const lessons = await Lesson.find();
         if (lessons.length) {
@@ -28,7 +29,7 @@ lessonRouter.get("/api/lessons", async (req, res) => {
     }
 })
 
-lessonRouter.get("/api/lessons/:id", async (req, res) => {
+lessonRouter.get("/api/lessons/:id",  authenticateJWT, async (req, res) => {
     const _id = req.params.id;
     if (!_id) throw new Error("Parameter 'id' is required");
     try {
@@ -43,7 +44,7 @@ lessonRouter.get("/api/lessons/:id", async (req, res) => {
     }
 })
 
-lessonRouter.delete("/api/lessons/:id", async (req, res) => {
+lessonRouter.delete("/api/lessons/:id",  authenticateJWT, async (req, res) => {
     const _id = req.params.id;
     if (!_id) throw new Error("Parameter 'id' is required");
     try {
@@ -58,7 +59,7 @@ lessonRouter.delete("/api/lessons/:id", async (req, res) => {
     }
 })
 
-lessonRouter.put("/api/lessons/:id", async (req, res) => {
+lessonRouter.put("/api/lessons/:id",  authenticateJWT, async (req, res) => {
     const _id = req.params.id;
     if (!_id) throw new Error("Parameter 'id' is required");
     try {
