@@ -1,10 +1,11 @@
 import {Router} from "express";
 import { Tag } from "../db/models/tags.models";
+import { authenticateJWT } from "../middlewares/auth.moddleware";
 
 
 export const tagsRouter = Router();
 
-tagsRouter.post("/api/tags", async (req, res) => {
+tagsRouter.post("/api/tags", authenticateJWT, async (req, res) => {
     if (!req.body) throw new Error("Tag Data Not Found");
     try {
         const tag  = await Tag.create(req.body);
@@ -15,7 +16,7 @@ tagsRouter.post("/api/tags", async (req, res) => {
     }
 })
 
-tagsRouter.get("/api/tags", async (req, res) => {
+tagsRouter.get("/api/tags", authenticateJWT, async (req, res) => {
     try {
         const tags = await Tag.find();
         if (tags.length) {
@@ -28,7 +29,7 @@ tagsRouter.get("/api/tags", async (req, res) => {
     }
 })
 
-tagsRouter.get("/api/tags/:id", async (req, res) => {
+tagsRouter.get("/api/tags/:id", authenticateJWT, async (req, res) => {
     const _id = req.params.id;
     if (!_id) throw new Error("Parameter 'id' is required");
     try {
@@ -43,7 +44,7 @@ tagsRouter.get("/api/tags/:id", async (req, res) => {
     }
 })
 
-tagsRouter.delete("/api/tags/:id", async (req, res) => {
+tagsRouter.delete("/api/tags/:id", authenticateJWT, async (req, res) => {
     const _id = req.params.id;
     if (!_id) throw new Error("Parameter 'id' is required");
     try {
@@ -58,7 +59,7 @@ tagsRouter.delete("/api/tags/:id", async (req, res) => {
     }
 })
 
-tagsRouter.put("/api/tags/:id", async (req, res) => {
+tagsRouter.put("/api/tags/:id", authenticateJWT, async (req, res) => {
     const _id = req.params.id;
     if (!_id) throw new Error("Parameter 'id' is required");
     try {

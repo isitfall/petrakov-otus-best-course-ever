@@ -1,10 +1,11 @@
 import {Router} from "express";
 import { Rating } from "../db/models/rating.models";
+import { authenticateJWT } from "../middlewares/auth.moddleware";
 
 
 export const ratingRouter = Router();
 
-ratingRouter.post("/api/ratings", async (req, res) => {
+ratingRouter.post("/api/ratings", authenticateJWT, async (req, res) => {
     if (!req.body) throw new Error("Rating Data Not Found");
     try {
         const rating  = await Rating.create(req.body);
@@ -15,7 +16,7 @@ ratingRouter.post("/api/ratings", async (req, res) => {
     }
 })
 
-ratingRouter.get("/api/ratings", async (req, res) => {
+ratingRouter.get("/api/ratings", authenticateJWT, async (req, res) => {
     try {
         const ratings = await Rating.find();
         if (ratings.length) {
@@ -28,7 +29,7 @@ ratingRouter.get("/api/ratings", async (req, res) => {
     }
 })
 
-ratingRouter.get("/api/ratings/:id", async (req, res) => {
+ratingRouter.get("/api/ratings/:id", authenticateJWT, async (req, res) => {
     const _id = req.params.id;
     if (!_id) throw new Error("Parameter 'id' is required");
     try {
@@ -43,7 +44,7 @@ ratingRouter.get("/api/ratings/:id", async (req, res) => {
     }
 })
 
-ratingRouter.delete("/api/ratings/:id", async (req, res) => {
+ratingRouter.delete("/api/ratings/:id", authenticateJWT, async (req, res) => {
     const _id = req.params.id;
     if (!_id) throw new Error("Parameter 'id' is required");
     try {
@@ -58,7 +59,7 @@ ratingRouter.delete("/api/ratings/:id", async (req, res) => {
     }
 })
 
-ratingRouter.put("/api/ratings/:id", async (req, res) => {
+ratingRouter.put("/api/ratings/:id", authenticateJWT, async (req, res) => {
     const _id = req.params.id;
     if (!_id) throw new Error("Parameter 'id' is required");
     try {
