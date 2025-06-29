@@ -4,11 +4,12 @@
   "description": "Приложение будет построено на Express, MongoDB, TS.",
   "main": "index.js",
   "scripts": {
-    "start": "node dist/index.js",
+    "start": "NODE_ENV=production node dist/index.js",
     "build": "tsc",
     "dev": "nodemon",
     "test:coverage": "jest --coverage",
-    "swagger": "node src/swagger/swagger.autogen.js"
+    "swagger": "node src/swagger/swagger.autogen.js",
+    "swagger:prod": "NODE_ENV=production node src/swagger/swagger.autogen.js"
   },
   "repository": {
     "type": "git",
