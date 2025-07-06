@@ -6,7 +6,7 @@ const doc = {
     },
 };
 
-const outputFile = './swagger-output.json';
+const outputFile =  process.env.NODE_ENV === 'production' ? '../../dist/swagger/swagger-output.json' : './swagger-output.json';
 const routes = ['./src/app.ts'];
 
 /* NOTE: If you are using the express Router, you must pass in the 'routes' only the
